@@ -12,7 +12,7 @@ public class Runner {
 	private static String jarFile = "src/reflectAss2.jar";
 	public static void main(String[] args) throws IOException {
 
-		Map<Class<?>, TypeCoupler>adjacencyList = new HashMap<Class<?>, TypeCoupler>();
+		Map<String, TypeCoupler>adjacencyList = new HashMap<String, TypeCoupler>();
 		try {
 			JarInputStream in = new JarInputStream(new FileInputStream(new File(jarFile)));
 			JarEntry next = in.getNextJarEntry();
@@ -27,8 +27,8 @@ public class Runner {
 						Class<?> cls = ClassParser.getInstance().findClass(name, jarFile);
 						System.out.println(name);
 						TypeCoupler cnp = new TypeCoupler(cls);
-						if (!adjacencyList.containsKey(cls)) {
-							adjacencyList.put(cls, cnp);
+						if (!adjacencyList.containsKey(name)) {
+							adjacencyList.put(name, cnp);
 						}
 					} catch (NoClassDefFoundError | ClassNotFoundException e) {
 						System.out.println("Bombed out");
@@ -40,7 +40,7 @@ public class Runner {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		for (Map.Entry<Class<?>, TypeCoupler> entry : adjacencyList.entrySet()) {
+		for (Map.Entry<String, TypeCoupler> entry : adjacencyList.entrySet()) {
 			
 			entry.getValue().doParsing(adjacencyList);
 		}

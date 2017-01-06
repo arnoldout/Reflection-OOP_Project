@@ -18,13 +18,12 @@ public class ClassParser {
 		}
 		return cp;
 	}
-	public void parseClassArr(Class<?>[] classArr, TypeCoupler tc, Map<Class<?>, TypeCoupler>adjacencyList)
+	public void parseClassArr(Class<?>[] classArr, TypeCoupler tc, Map<String, TypeCoupler>adjacencyList)
 	{
 		for(Class<?> c : classArr)
 		{
-			System.out.println(c.getName());
 			tc.addEfferentClass(c);
-			if(adjacencyList.containsKey(c))
+			if(adjacencyList.containsKey(c.getName()))
 			{
 				adjacencyList.get(c).addAfferentClass(tc.getBaseClass());
 			}

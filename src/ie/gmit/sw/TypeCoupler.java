@@ -20,7 +20,7 @@ public class TypeCoupler {
 		this.efferentCouplings = new HashSet<Class<?>>();
 	}
 	
-	public void doParsing(Map<Class<?>, TypeCoupler> adjacencyList)
+	public void doParsing(Map<String, TypeCoupler> adjacencyList)
 	{
 		Class<?> currentClass = this.baseClass;
 		Package pack = currentClass.getPackage();// Get the package
@@ -34,14 +34,19 @@ public class TypeCoupler {
 		
 		for (int i = 0; i < cons.length; i++) {
 			Class<?>[] constructorParams = cons[i].getParameterTypes(); // Get the parameters
-			if(adjacencyList.containsKey(constructorParams))
+			for (int j = 0; j < constructorParams.length; j++)
 			{
-				adjacencyList.get(constructorParams).addAfferentClass(this.baseClass);
-				ClassParser.getInstance().parseClassArr(constructorParams, this, adjacencyList);
-			}
-			else
-			{
-				System.out.println(adjacencyList.get(constructorParams));
+				Class<?> c = constructorParams[j];
+				if(adjacencyList.containsKey(c.getName()))
+				{
+					adjacencyList.get(c.getName()).addAfferentClass(this.baseClass);
+					ClassParser.getInstance().parseClassArr(constructorParams, this, adjacencyList);
+				}
+				else
+				{
+					System.out.println(adjacencyList.get(constructorParams.toString()));
+					System.out.println();
+				}
 			}
 		}
 		Field[] fields = currentClass.getFields(); // Get the fields / attributes
