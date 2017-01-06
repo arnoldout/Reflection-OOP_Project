@@ -9,10 +9,11 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 
 public class Runner {
-	private static String jarFile = "src/reflectAss2.jar";
+	private static String jarFile = "src/reflectAss1.jar";
+
 	public static void main(String[] args) throws IOException {
 
-		Map<String, TypeCoupler>adjacencyList = new HashMap<String, TypeCoupler>();
+		Map<String, TypeCoupler> adjacencyList = new HashMap<String, TypeCoupler>();
 		try {
 			JarInputStream in = new JarInputStream(new FileInputStream(new File(jarFile)));
 			JarEntry next = in.getNextJarEntry();
@@ -41,8 +42,25 @@ public class Runner {
 			e.printStackTrace();
 		}
 		for (Map.Entry<String, TypeCoupler> entry : adjacencyList.entrySet()) {
-			
+
 			entry.getValue().doParsing(adjacencyList);
+		}
+
+		for (Map.Entry<String, TypeCoupler> entry : adjacencyList.entrySet()) {
+			{
+				System.out.println("----------------------------------------");
+				System.out.println(entry.getValue().getBaseClass().getName());
+				double afferent = entry.getValue().getAfferentCouplings().size();
+				double efferent = entry.getValue().getEfferentCouplings().size();
+				double positionalStability = efferent / (afferent + efferent);
+				if(afferent==0.0&&efferent==0.0)
+				{
+					positionalStability  = 0.0;
+				}
+				
+				System.out.println("Positional Stability :"+positionalStability);
+			}
+
 		}
 	}
 }

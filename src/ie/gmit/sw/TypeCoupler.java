@@ -1,9 +1,8 @@
 package ie.gmit.sw;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -22,47 +21,13 @@ public class TypeCoupler {
 	
 	public void doParsing(Map<String, TypeCoupler> adjacencyList)
 	{
-		Class<?> currentClass = this.baseClass;
-		Package pack = currentClass.getPackage();// Get the package
-		System.out.println(pack);
-		boolean iFace = currentClass.isInterface(); // Is it an interface?
-		if(iFace){
-			Class<?>[] interfaces = currentClass.getInterfaces(); // Get the set of interface it implements
-			ClassParser.getInstance().parseClassArr(interfaces, this, adjacencyList);
-		}
-		Constructor<?>[] cons = currentClass.getConstructors(); // Get the set of constructors
+		List<Class<?>> classes = new ArrayList<Class<?>>();
+		classes.addAll(ClassParser.getInstance().parseInterfaces(this.baseClass));
+		classes.addAll(ClassParser.getInstance().parseConstructors(this.baseClass));
+		classes.addAll(ClassParser.getInstance().parseFields(this.baseClass));
+		classes.addAll(ClassParser.getInstance().parseMethods(this.baseClass));
 		
-		for (int i = 0; i < cons.length; i++) {
-			Class<?>[] constructorParams = cons[i].getParameterTypes(); // Get the parameters
-			for (int j = 0; j < constructorParams.length; j++)
-			{
-				Class<?> c = constructorParams[j];
-				if(adjacencyList.containsKey(c.getName()))
-				{
-					adjacencyList.get(c.getName()).addAfferentClass(this.baseClass);
-					ClassParser.getInstance().parseClassArr(constructorParams, this, adjacencyList);
-				}
-				else
-				{
-					System.out.println(adjacencyList.get(constructorParams.toString()));
-					System.out.println();
-				}
-			}
-		}
-		Field[] fields = currentClass.getFields(); // Get the fields / attributes
-		Class<?>[] fieldTypes  = new Class<?>[fields.length];
-		for (int i = 0; i < fields.length; i++) {
-			fieldTypes[i] = fields[i].getDeclaringClass();
-		}
-		ClassParser.getInstance().parseClassArr(fieldTypes, this, adjacencyList);
-		
-		Method[] methods = currentClass.getMethods(); // Get the set of methods
-		for (int i = 0; i < methods.length; i++) {
-			Class<?> c = methods[i].getReturnType(); // Get a method return type
-			System.out.println(methods[i].getName());
-			Class<?>[] methodParams = methods[i].getParameterTypes(); // Get method parameters
-			ClassParser.getInstance().parseClassArr(methodParams, this, adjacencyList);
-		}
+		ClassParser.getInstance().coupleClassArr(classes, this, adjacencyList);
 	}
 	public void addAfferentClass(Class<?> c)
 	{
