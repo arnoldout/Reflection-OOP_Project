@@ -13,8 +13,8 @@ import java.util.jar.JarInputStream;
 public class JarParser {
 
 	
-	public Map<String, TypeCoupler> parse(String FileName){
-		Map<String, TypeCoupler> adjacencyList = extractMap(new File(FileName));
+	public Map<String, TypeCoupler> parse(File file){
+		Map<String, TypeCoupler> adjacencyList = extractMap(file);
 		parseAdjacencyList(adjacencyList);
 		return adjacencyList;
 	}
@@ -40,13 +40,14 @@ public class JarParser {
 					if (!name.contains("$"))
 						name.substring(0, name.length() - ".class".length());
 					try {
-						Class<?> cls = findClass(name, jarFile.getName());
+						Class<?> cls = findClass(name, jarFile.getAbsolutePath());
 						System.out.println(name);
 						TypeCoupler cnp = new TypeCoupler(cls);
 						if (!adjacencyList.containsKey(name)) {
 							adjacencyList.put(name, cnp);
 						}
 					} catch (NoClassDefFoundError | ClassNotFoundException e) {
+						e.printStackTrace();
 						System.out.println("Bombed out");
 					}
 				}

@@ -41,26 +41,29 @@ public class AppWindow {
             public void actionPerformed(ActionEvent evt) {
         		JFileChooser fc = new JFileChooser("./");
         		int returnVal = fc.showOpenDialog(frame);
-            	if (returnVal == JFileChooser.APPROVE_OPTION) {
-                	File file = fc.getSelectedFile().getAbsoluteFile();
+            	if (returnVal == JFileChooser.APPROVE_OPTION && fc.getSelectedFile().getName().endsWith(".jar")) {
+                	File file = fc.getSelectedFile();
                 	String name = file.getAbsolutePath(); 
                 	txtFileName.setText(name);
                 	System.out.println("You selected the following file: " + name);
                 	
-                	JButton btnOther = new JButton("Do Something");
-            		btnOther.setToolTipText("Do Something");
+                	JButton btnOther = new JButton("Process File");
+            		btnOther.setToolTipText("Process File");
             		btnOther.setPreferredSize(new java.awt.Dimension(150, 30));
             		btnOther.setMaximumSize(new java.awt.Dimension(150, 30));
             		btnOther.setMargin(new java.awt.Insets(2, 2, 2, 2));
             		btnOther.setMinimumSize(new java.awt.Dimension(150, 30));
             		btnOther.addActionListener(new java.awt.event.ActionListener() {
                         public void actionPerformed(ActionEvent evt) {
-                        	System.out.println("Do Something");
-                        	
+                        	JarParser jp = new JarParser();
+                    		jp.parse(file);
             			}
                     });
             		top.add(btnOther);
             		top.validate();
+            	}
+            	else{
+            		JOptionPane.showMessageDialog(null, "Invalid File Type");
             	}
 			}
         });
