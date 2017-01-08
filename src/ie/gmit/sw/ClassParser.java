@@ -3,46 +3,28 @@ package ie.gmit.sw;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
-public class ClassParser {
+public class ClassParser{
 
-	private static ClassParser cp;
-
+	private static ClassParser cp = new ClassParser();
 	private ClassParser() {
 	}
-
-	public static ClassParser getInstance() {
-		if (cp == null) {
-			cp = new ClassParser();
-		}
+	public static ClassParser getInstance()
+	{
 		return cp;
 	}
-	public void coupleClassArr(List<Class<?>> classes, TypeCoupler tc, Map<String, TypeCoupler>adjacencyList)
+	
+	public List<Class<?>> parse(TypeCoupler tc)
 	{
-		for(Class<?> c : classes)
-		{
-			if(checkList(adjacencyList, c))
-			{
-				//add an efferent and afferent only when classes are already populated in map
-				tc.addEfferentClass(c);
-				adjacencyList.get(c.getName()).addAfferentClass(tc.getBaseClass());
-			}
-		}
-	}
-	private boolean checkList(Map<String, TypeCoupler> adjacencyList, Class<?> c)
-	{
-		if(adjacencyList.containsKey(c.getName()))
-		{
-			return true;
-		}
-		return false;
+		List<Class<?>> classes = new ArrayList<Class<?>>();
+		classes.addAll(parseInterfaces(tc.getBaseClass()));
+		classes.addAll(parseConstructors(tc.getBaseClass()));
+		classes.addAll(parseFields(tc.getBaseClass()));
+		classes.addAll(parseMethods(tc.getBaseClass()));
+		return classes;
 	}
 	
 	public List<Class<?>> parseInterfaces(Class<?> currentClass)
@@ -76,12 +58,6 @@ public class ClassParser {
 			classes.add(methods[i].getReturnType()); // Get a method return type
 			classes.addAll(Arrays.asList(methods[i].getParameterTypes())); // Get method parameters
 		}
-		return classes;
-	}
-
-	public Class<?> findClass(String name, String jarFile) throws MalformedURLException, ClassNotFoundException {
-		URL[] urls = { new URL("jar:file:" + jarFile + "!/") };
-		URLClassLoader child = new URLClassLoader(urls, this.getClass().getClassLoader());
-		return Class.forName(name, true, child);
+		return classes; //return all params and return types
 	}
 }

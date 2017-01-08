@@ -19,16 +19,6 @@ public class TypeCoupler {
 		this.efferentCouplings = new HashSet<Class<?>>();
 	}
 	
-	public void doParsing(Map<String, TypeCoupler> adjacencyList)
-	{
-		List<Class<?>> classes = new ArrayList<Class<?>>();
-		classes.addAll(ClassParser.getInstance().parseInterfaces(this.baseClass));
-		classes.addAll(ClassParser.getInstance().parseConstructors(this.baseClass));
-		classes.addAll(ClassParser.getInstance().parseFields(this.baseClass));
-		classes.addAll(ClassParser.getInstance().parseMethods(this.baseClass));
-		
-		ClassParser.getInstance().coupleClassArr(classes, this, adjacencyList);
-	}
 	public void addAfferentClass(Class<?> c)
 	{
 		if(!afferentCouplings.contains(c))
@@ -42,6 +32,27 @@ public class TypeCoupler {
 		{
 			efferentCouplings.add(c);
 		}
+	}
+	
+	public void coupleClassArr(List<Class<?>> classes, Map<String, TypeCoupler>adjacencyList)
+	{
+		for(Class<?> c : classes)
+		{
+			if(checkList(adjacencyList, c))
+			{
+				//add an efferent and afferent only when classes are already populated in map
+				this.addEfferentClass(c);
+				adjacencyList.get(c.getName()).addAfferentClass(this.getBaseClass());
+			}
+		}
+	}
+	private boolean checkList(Map<String, TypeCoupler> adjacencyList, Class<?> c)
+	{
+		if(adjacencyList.containsKey(c.getName()))
+		{
+			return true;
+		}
+		return false;
 	}
 	
 	public Class<?> getBaseClass() {
