@@ -46,26 +46,29 @@ public class AppWindow {
                 	String name = file.getAbsolutePath(); 
                 	txtFileName.setText(name);
                 	System.out.println("You selected the following file: " + name);
+                	
+                	JButton btnOther = new JButton("Do Something");
+            		btnOther.setToolTipText("Do Something");
+            		btnOther.setPreferredSize(new java.awt.Dimension(150, 30));
+            		btnOther.setMaximumSize(new java.awt.Dimension(150, 30));
+            		btnOther.setMargin(new java.awt.Insets(2, 2, 2, 2));
+            		btnOther.setMinimumSize(new java.awt.Dimension(150, 30));
+            		btnOther.addActionListener(new java.awt.event.ActionListener() {
+                        public void actionPerformed(ActionEvent evt) {
+                        	System.out.println("Do Something");
+                        	
+            			}
+                    });
+            		top.add(btnOther);
+            		top.validate();
             	}
 			}
         });
 		
-		JButton btnOther = new JButton("Do Something");
-		btnOther.setToolTipText("Do Something");
-		btnOther.setPreferredSize(new java.awt.Dimension(150, 30));
-		btnOther.setMaximumSize(new java.awt.Dimension(150, 30));
-		btnOther.setMargin(new java.awt.Insets(2, 2, 2, 2));
-		btnOther.setMinimumSize(new java.awt.Dimension(150, 30));
-		btnOther.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-            	System.out.println("Do Something");
-            	
-			}
-        });
 		
         top.add(txtFileName);
         top.add(btnChooseFile);
-        top.add(btnOther);
+        
         frame.getContentPane().add(top); //Add the panel to the window
         
         
