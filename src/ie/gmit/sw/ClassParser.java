@@ -7,33 +7,56 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class ClassParser{
-
-	private static ClassParser cp = new ClassParser();
-	private ClassParser() {
+/**
+ * 
+ * @author Oliver
+ *	ClassParser is an implementation of the parserable interface
+ *	it is used to parse a class
+ */
+public class ClassParser implements Parserable{
+	private List<Class<?>> classes;
+	private Class<?> c;
+	/**
+	 * Constructor
+	 * @param c - The Class to be parsed
+	 */
+	public ClassParser(Class<?> c) {
+		this.c = c;
+		classes = new ArrayList<Class<?>>();
 	}
-	public static ClassParser getInstance()
+	/**
+	 * Method called to parse a class for any interfaces, constructors, fields and methods
+	 * Method calls individual private methods at once, and stores them into a list of classes
+	 */
+	public void parse()
 	{
-		return cp;
+		classes.addAll(parseInterfaces(c));
+		classes.addAll(parseConstructors(c));
+		classes.addAll(parseFields(c));
+		classes.addAll(parseMethods(c));
 	}
-	
-	public List<Class<?>> parse(TypeCoupler tc)
+	public List<Class<?>> getResult()
 	{
-		List<Class<?>> classes = new ArrayList<Class<?>>();
-		classes.addAll(parseInterfaces(tc.getBaseClass()));
-		classes.addAll(parseConstructors(tc.getBaseClass()));
-		classes.addAll(parseFields(tc.getBaseClass()));
-		classes.addAll(parseMethods(tc.getBaseClass()));
 		return classes;
 	}
-	
-	public List<Class<?>> parseInterfaces(Class<?> currentClass)
+	/**
+	 * 
+	 * @param currentClass - Will be checked for interfaces
+	 * @return - A list of classes of interfaces in the currentClass
+	 */
+	private List<Class<?>> parseInterfaces(Class<?> currentClass)
 	{
 		return Arrays.asList(currentClass.getInterfaces()); // Get the set of interface it implements
 	}
-	public List<Class<?>> parseConstructors(Class<?> currentClass)
+	/**
+	 * 
+	 * @param currentClass - Will be checked for constructor parameters
+	 * @return a list of classes pertaining to constructor parameters
+	 */
+	private List<Class<?>> parseConstructors(Class<?> currentClass)
 	{
 		List <Class<?>> classes = new ArrayList<Class<?>>();
+		//loop over all constructors, check for params, add to list if params exist
 		Constructor<?>[] cons = currentClass.getConstructors(); // Get the set of constructors
 		for (int i = 0; i < cons.length; i++) {
 			Class<?>[] constructorParams = cons[i].getParameterTypes(); // Get the parameters
@@ -41,7 +64,12 @@ public class ClassParser{
 		}
 		return classes;
 	}
-	public List<Class<?>> parseFields(Class<?> currentClass)
+	/**
+	 * 
+	 * @param currentClass - Will be checked for fields
+	 * @return a list of classes pertaining to the fields
+	 */
+	private List<Class<?>> parseFields(Class<?> currentClass)
 	{
 		Field[] fields = currentClass.getFields(); // Get the fields / attributes
 		Class<?>[] fieldTypes  = new Class<?>[fields.length];
@@ -50,7 +78,12 @@ public class ClassParser{
 		}
 		return Arrays.asList(fieldTypes);
 	}
-	public List<Class<?>> parseMethods(Class<?> currentClass)
+	/**
+	 * 
+	 * @param currentClass - Will be checked for methods
+	 * @return a list of classes pertaining to any parameters in methods, and return types
+	 */
+	private List<Class<?>> parseMethods(Class<?> currentClass)
 	{
 		List <Class<?>> classes = new ArrayList<Class<?>>();
 		Method[] methods = currentClass.getMethods(); // Get the set of methods

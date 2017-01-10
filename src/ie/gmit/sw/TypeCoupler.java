@@ -1,11 +1,16 @@
 package ie.gmit.sw;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * 
+ * @author Oliver
+ *
+ *Type coupler stores the base class and the afferent, efferent couplings of that class together
+ */
 public class TypeCoupler {
 	private Class<?> baseClass;
 	private Set<Class<?>> afferentCouplings;
@@ -34,6 +39,11 @@ public class TypeCoupler {
 		}
 	}
 	
+	/**
+	 * add a class to the efferent set, send a request to the class to add this base class as afferent 
+	 * @param classes - list of classes to be processed as efferent and afferent
+	 * @param adjacencyList - check if class appears in the jar file (will prevent java library objects from being added)
+	 */
 	public void coupleClassArr(List<Class<?>> classes, Map<String, TypeCoupler>adjacencyList)
 	{
 		for(Class<?> c : classes)
@@ -70,7 +80,5 @@ public class TypeCoupler {
 	}
 	public void setEfferentCouplings(Set<Class<?>> efferentCouplings) {
 		this.efferentCouplings = efferentCouplings;
-	}
-	
-	
+	}	
 }

@@ -9,23 +9,57 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
+/**
+ * 
+ * @author Oliver
+ *	Jar parser is an implementation of the parserable interface runs through a jarfile, extracts any classes from it
+ *	it stores the classes in TypeCoupler objects, and stores those typecouplers into a hashmap
+ */
+public class JarParser implements Parserable {
 
-public class JarParser {
-
-	
-	public Map<String, TypeCoupler> parse(File file){
-		Map<String, TypeCoupler> adjacencyList = extractMap(file);
+	private Map<String, TypeCoupler> adjacencyList;
+	private File jarfile;
+	/**
+	 * Constructor
+	 * @param jarfile - A file, should be of type .jar
+	 */
+	public JarParser(File jarfile)
+	{
+		this.jarfile = jarfile;
+		adjacencyList = new HashMap<String, TypeCoupler>();
+	}
+	/**
+	 * parse method calls private methods to build the adjacency list from the jar file
+	 */
+	public void parse(){
+		adjacencyList = extractMap(jarfile);
 		parseAdjacencyList(adjacencyList);
+	}
+	
+	public Map<String, TypeCoupler> getResult()
+	{
 		return adjacencyList;
 	}
 	
-	
+	/**
+	 * loads a class from a jar file
+	 * @param name - name of class
+	 * @param jarFile - jar file name
+	 * @return - the requested class file
+	 * @throws MalformedURLException - can occur if jar file url is not right
+	 * @throws ClassNotFoundException - triggered if a class isn't found in the jar file
+	 */
 	private Class<?> findClass(String name, String jarFile) throws MalformedURLException, ClassNotFoundException {
 		URL[] urls = { new URL("jar:file:" + jarFile + "!/") };
 		URLClassLoader child = new URLClassLoader(urls, this.getClass().getClassLoader());
 		return Class.forName(name, true, child);
 	}
-	
+	/**
+	 * Will parse file to populate a map with all of the class files in a jar
+	 * 
+	 * @param jarFile - jar file to be parsed
+	 * @return - adjacency list
+	 */
 	private Map<String, TypeCoupler> extractMap(File jarFile)
 	{
 		Map<String, TypeCoupler> adjacencyList = new HashMap<String, TypeCoupler>();
@@ -47,8 +81,7 @@ public class JarParser {
 							adjacencyList.put(name, cnp);
 						}
 					} catch (NoClassDefFoundError | ClassNotFoundException e) {
-						e.printStackTrace();
-						System.out.println("Bombed out");
+						System.out.println("Problem reading the class");
 					}
 				}
 				next = in.getNextJarEntry();
@@ -59,11 +92,19 @@ public class JarParser {
 		}
 		return adjacencyList;
 	}
+	/**
+	 * loops through the map and populates the efferant and afferent pairings
+	 * 
+	 * @param adjacencyList - Map of classes, and typecouplers containing classes
+	 */
 	private void parseAdjacencyList(Map<String, TypeCoupler> adjacencyList)
 	{
+		
 		for (Map.Entry<String, TypeCoupler> entry : adjacencyList.entrySet()) {
 			//get value to parse itself and then append to the efferent and afferent sets
-			entry.getValue().coupleClassArr(ClassParser.getInstance().parse(entry.getValue()), adjacencyList);
+			ClassParser cp = new ClassParser(entry.getValue().getBaseClass());
+			cp.parse();
+			entry.getValue().coupleClassArr(cp.getResult(), adjacencyList);
 		}
 	}
 }

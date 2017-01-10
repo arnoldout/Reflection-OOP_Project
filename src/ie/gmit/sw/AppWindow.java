@@ -9,6 +9,11 @@ import java.awt.event.*;
 import java.io.File;
 import java.util.Map;
 
+/**
+ * 
+ * @author Oliver/Dr. John Healy
+ * Draws a swing program for adding a file and processing it using the positional stability calculating process
+ */
 public class AppWindow {
 	private JFrame frame;
 	private File uploadedFile;
@@ -17,7 +22,7 @@ public class AppWindow {
 		// Create a window for the application
 		frame = new JFrame();
 		frame.setTitle("B.Sc. in Software Development - GMIT");
-		frame.setSize(550, 500);
+		frame.setSize(550, 550);
 		frame.setResizable(false);
 		frame.setLayout(new FlowLayout());
 
@@ -46,21 +51,22 @@ public class AppWindow {
 		mid.setPreferredSize(new java.awt.Dimension(500, 300));
 		mid.setMaximumSize(new java.awt.Dimension(500, 300));
 		mid.setMinimumSize(new java.awt.Dimension(500, 300));
+		
 		JTable tbl = new JTable();
 		DefaultTableModel dtm = new DefaultTableModel(0, 0);
-
 
 		String header[] = new String[] { "Class", "Score" };
 		dtm.setColumnIdentifiers(header);
 		tbl.setModel(dtm);
 		JScrollPane jsb = new JScrollPane(tbl);
-		mid.add(jsb);
+		jsb.setPreferredSize(new java.awt.Dimension(485, 290));
+		mid.add(jsb, BorderLayout.NORTH);
 
-		
 		btnChooseFile.addActionListener(new java.awt.event.ActionListener() {
 			public void actionPerformed(ActionEvent evt) {
 				JFileChooser fc = new JFileChooser("./");
 				int returnVal = fc.showOpenDialog(frame);
+				//file must be .jar
 				if (returnVal == JFileChooser.APPROVE_OPTION && fc.getSelectedFile().getName().endsWith(".jar")) {
 					uploadedFile = fc.getSelectedFile();
 					String name = uploadedFile.getAbsolutePath();
@@ -80,30 +86,26 @@ public class AppWindow {
 		btnOther.setMargin(new java.awt.Insets(2, 2, 2, 2));
 		btnOther.setMinimumSize(new java.awt.Dimension(150, 30));
 		btnOther.addActionListener(new java.awt.event.ActionListener() {
-
 			public void actionPerformed(ActionEvent evt) {
-				if(uploadedFile!=null)
-				{
-					
-					JarParser jp = new JarParser();
-					Map<String, TypeCoupler> adjacencyList = jp.parse(uploadedFile);
+				//ensure a file is waiting to be processed first
+				if (uploadedFile != null) {
+					//parse jar file
+					JarParser jp = new JarParser(uploadedFile);
+					jp.parse();
+					//wipe table if one already exists
 					dtm.setRowCount(0);
-					
-					for (Map.Entry<String, TypeCoupler> entry : adjacencyList.entrySet()) {
-						{
-							double afferent = entry.getValue().getAfferentCouplings().size();
-							double efferent = entry.getValue().getEfferentCouplings().size();
-							double positionalStability = efferent / (afferent + efferent);
-							if (afferent == 0.0 && efferent == 0.0) {
-								positionalStability = 0.0;
-							}
-							dtm.addRow(new Object[] { entry.getKey(), positionalStability });
-						}
 
-				}
-				}
-				else{
-					JOptionPane.showMessageDialog(frame,"No File to process!","Upload a file first",JOptionPane.WARNING_MESSAGE);
+					for (Map.Entry<String, TypeCoupler> entry : jp.getResult().entrySet()) {
+						//get instance of singleton PositionalStability
+						double positionalStability = PositionalStability.getInstance().getStability(entry.getValue().getAfferentCouplings().size(), entry.getValue().getEfferentCouplings().size());
+						//output result to table
+						dtm.addRow(new Object[] { entry.getKey(), positionalStability });
+
+					}
+				} else {
+					//if no file uploaded yet, tell user to upload one
+					JOptionPane.showMessageDialog(frame, "No File to process!", "Upload a file first",
+							JOptionPane.WARNING_MESSAGE);
 				}
 			}
 		});
@@ -114,13 +116,12 @@ public class AppWindow {
 		top.add(btnOther);
 		frame.getContentPane().add(top); // Add the panel to the window
 
-
 		frame.getContentPane().add(mid);
 
 		JPanel bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		bottom.setPreferredSize(new java.awt.Dimension(500, 50));
-		bottom.setMaximumSize(new java.awt.Dimension(500, 50));
-		bottom.setMinimumSize(new java.awt.Dimension(500, 50));
+		bottom.setPreferredSize(new java.awt.Dimension(500, 100));
+		bottom.setMaximumSize(new java.awt.Dimension(500, 100));
+		bottom.setMinimumSize(new java.awt.Dimension(500, 100));
 
 		JButton btnQuit = new JButton("Quit"); // Create Quit button
 		btnQuit.addActionListener(new java.awt.event.ActionListener() {
