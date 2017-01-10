@@ -1,12 +1,16 @@
 package ie.gmit.sw;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * 
+ * @author Oliver
+ *
+ *Type coupler stores the base class and the afferent, efferent couplings of that class together
+ */
 public class TypeCoupler {
 	private Class<?> baseClass;
 	private Set<Class<?>> afferentCouplings;
@@ -20,50 +24,6 @@ public class TypeCoupler {
 		this.efferentCouplings = new HashSet<Class<?>>();
 	}
 	
-	public void doParsing(Map<String, TypeCoupler> adjacencyList)
-	{
-		Class<?> currentClass = this.baseClass;
-		Package pack = currentClass.getPackage();// Get the package
-		System.out.println(pack);
-		boolean iFace = currentClass.isInterface(); // Is it an interface?
-		if(iFace){
-			Class<?>[] interfaces = currentClass.getInterfaces(); // Get the set of interface it implements
-			ClassParser.getInstance().parseClassArr(interfaces, this, adjacencyList);
-		}
-		Constructor<?>[] cons = currentClass.getConstructors(); // Get the set of constructors
-		
-		for (int i = 0; i < cons.length; i++) {
-			Class<?>[] constructorParams = cons[i].getParameterTypes(); // Get the parameters
-			for (int j = 0; j < constructorParams.length; j++)
-			{
-				Class<?> c = constructorParams[j];
-				if(adjacencyList.containsKey(c.getName()))
-				{
-					adjacencyList.get(c.getName()).addAfferentClass(this.baseClass);
-					ClassParser.getInstance().parseClassArr(constructorParams, this, adjacencyList);
-				}
-				else
-				{
-					System.out.println(adjacencyList.get(constructorParams.toString()));
-					System.out.println();
-				}
-			}
-		}
-		Field[] fields = currentClass.getFields(); // Get the fields / attributes
-		Class<?>[] fieldTypes  = new Class<?>[fields.length];
-		for (int i = 0; i < fields.length; i++) {
-			fieldTypes[i] = fields[i].getDeclaringClass();
-		}
-		ClassParser.getInstance().parseClassArr(fieldTypes, this, adjacencyList);
-		
-		Method[] methods = currentClass.getMethods(); // Get the set of methods
-		for (int i = 0; i < methods.length; i++) {
-			Class<?> c = methods[i].getReturnType(); // Get a method return type
-			System.out.println(methods[i].getName());
-			Class<?>[] methodParams = methods[i].getParameterTypes(); // Get method parameters
-			ClassParser.getInstance().parseClassArr(methodParams, this, adjacencyList);
-		}
-	}
 	public void addAfferentClass(Class<?> c)
 	{
 		if(!afferentCouplings.contains(c))
@@ -77,6 +37,32 @@ public class TypeCoupler {
 		{
 			efferentCouplings.add(c);
 		}
+	}
+	
+	/**
+	 * add a class to the efferent set, send a request to the class to add this base class as afferent 
+	 * @param classes - list of classes to be processed as efferent and afferent
+	 * @param adjacencyList - check if class appears in the jar file (will prevent java library objects from being added)
+	 */
+	public void coupleClassArr(List<Class<?>> classes, Map<String, TypeCoupler>adjacencyList)
+	{
+		for(Class<?> c : classes)
+		{
+			if(checkList(adjacencyList, c))
+			{
+				//add an efferent and afferent only when classes are already populated in map
+				this.addEfferentClass(c);
+				adjacencyList.get(c.getName()).addAfferentClass(this.getBaseClass());
+			}
+		}
+	}
+	private boolean checkList(Map<String, TypeCoupler> adjacencyList, Class<?> c)
+	{
+		if(adjacencyList.containsKey(c.getName()))
+		{
+			return true;
+		}
+		return false;
 	}
 	
 	public Class<?> getBaseClass() {
@@ -94,7 +80,5 @@ public class TypeCoupler {
 	}
 	public void setEfferentCouplings(Set<Class<?>> efferentCouplings) {
 		this.efferentCouplings = efferentCouplings;
-	}
-	
-	
+	}	
 }
