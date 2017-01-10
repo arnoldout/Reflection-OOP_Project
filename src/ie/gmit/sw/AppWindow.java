@@ -11,6 +11,7 @@ import java.util.Map;
 
 public class AppWindow {
 	private JFrame frame;
+	private File uploadedFile;
 
 	public AppWindow() {
 		// Create a window for the application
@@ -22,7 +23,7 @@ public class AppWindow {
 
 		// The file panel will contain the file chooser
 		JPanel top = new JPanel(new FlowLayout(FlowLayout.LEADING));
-		top.setBorder(new javax.swing.border.TitledBorder("Select File to Encode"));
+		top.setBorder(new javax.swing.border.TitledBorder("Select File to Process"));
 		top.setPreferredSize(new java.awt.Dimension(500, 100));
 		top.setMaximumSize(new java.awt.Dimension(500, 100));
 		top.setMinimumSize(new java.awt.Dimension(500, 100));
@@ -34,7 +35,7 @@ public class AppWindow {
 		txtFileName.setMinimumSize(new java.awt.Dimension(100, 30));
 
 		JButton btnChooseFile = new JButton("Browse...");
-		btnChooseFile.setToolTipText("Select File to Encode");
+		btnChooseFile.setToolTipText("Select File to Process");
 		btnChooseFile.setPreferredSize(new java.awt.Dimension(90, 30));
 		btnChooseFile.setMaximumSize(new java.awt.Dimension(90, 30));
 		btnChooseFile.setMargin(new java.awt.Insets(2, 2, 2, 2));
@@ -48,53 +49,61 @@ public class AppWindow {
 		JTable tbl = new JTable();
 		DefaultTableModel dtm = new DefaultTableModel(0, 0);
 
+
+		String header[] = new String[] { "Class", "Score" };
+		dtm.setColumnIdentifiers(header);
+		tbl.setModel(dtm);
+		JScrollPane jsb = new JScrollPane(tbl);
+		mid.add(jsb);
+
+		
 		btnChooseFile.addActionListener(new java.awt.event.ActionListener() {
 			public void actionPerformed(ActionEvent evt) {
 				JFileChooser fc = new JFileChooser("./");
 				int returnVal = fc.showOpenDialog(frame);
 				if (returnVal == JFileChooser.APPROVE_OPTION && fc.getSelectedFile().getName().endsWith(".jar")) {
-					File file = fc.getSelectedFile();
-					String name = file.getAbsolutePath();
+					uploadedFile = fc.getSelectedFile();
+					String name = uploadedFile.getAbsolutePath();
 					txtFileName.setText(name);
 					System.out.println("You selected the following file: " + name);
 
-					JButton btnOther = new JButton("Process File");
-					btnOther.setToolTipText("Process File");
-					btnOther.setPreferredSize(new java.awt.Dimension(150, 30));
-					btnOther.setMaximumSize(new java.awt.Dimension(150, 30));
-					btnOther.setMargin(new java.awt.Insets(2, 2, 2, 2));
-					btnOther.setMinimumSize(new java.awt.Dimension(150, 30));
-					btnOther.addActionListener(new java.awt.event.ActionListener() {
-						public void actionPerformed(ActionEvent evt) {
-							tbl.clearSelection();
-							JarParser jp = new JarParser();
-							Map<String, TypeCoupler> adjacencyList = jp.parse(file);
-
-							String header[] = new String[] { "Class", "Score" };
-							dtm.setColumnIdentifiers(header);
-							tbl.setModel(dtm);
-							JScrollPane jsb = new JScrollPane(tbl);
-							for (Map.Entry<String, TypeCoupler> entry : adjacencyList.entrySet()) {
-								{
-									double afferent = entry.getValue().getAfferentCouplings().size();
-									double efferent = entry.getValue().getEfferentCouplings().size();
-									double positionalStability = efferent / (afferent + efferent);
-									if (afferent == 0.0 && efferent == 0.0) {
-										positionalStability = 0.0;
-									}
-									dtm.addRow(new Object[] { entry.getKey(), positionalStability });
-								}
-
-							}
-							mid.add(jsb);
-
-							mid.validate();
-						}
-					});
-					top.add(btnOther);
-					top.validate();
 				} else {
 					JOptionPane.showMessageDialog(null, "Invalid File Type");
+				}
+			}
+		});
+
+		JButton btnOther = new JButton("Process File");
+		btnOther.setToolTipText("Process File");
+		btnOther.setPreferredSize(new java.awt.Dimension(150, 30));
+		btnOther.setMaximumSize(new java.awt.Dimension(150, 30));
+		btnOther.setMargin(new java.awt.Insets(2, 2, 2, 2));
+		btnOther.setMinimumSize(new java.awt.Dimension(150, 30));
+		btnOther.addActionListener(new java.awt.event.ActionListener() {
+
+			public void actionPerformed(ActionEvent evt) {
+				if(uploadedFile!=null)
+				{
+					
+					JarParser jp = new JarParser();
+					Map<String, TypeCoupler> adjacencyList = jp.parse(uploadedFile);
+					dtm.setRowCount(0);
+					
+					for (Map.Entry<String, TypeCoupler> entry : adjacencyList.entrySet()) {
+						{
+							double afferent = entry.getValue().getAfferentCouplings().size();
+							double efferent = entry.getValue().getEfferentCouplings().size();
+							double positionalStability = efferent / (afferent + efferent);
+							if (afferent == 0.0 && efferent == 0.0) {
+								positionalStability = 0.0;
+							}
+							dtm.addRow(new Object[] { entry.getKey(), positionalStability });
+						}
+
+				}
+				}
+				else{
+					JOptionPane.showMessageDialog(frame,"No File to process!","Upload a file first",JOptionPane.WARNING_MESSAGE);
 				}
 			}
 		});
@@ -102,15 +111,10 @@ public class AppWindow {
 		top.add(txtFileName);
 		top.add(btnChooseFile);
 
+		top.add(btnOther);
 		frame.getContentPane().add(top); // Add the panel to the window
 
-		/*
-		 * CustomControl cc = new CustomControl(new java.awt.Dimension(500,
-		 * 300)); cc.setBackground(Color.WHITE); cc.setPreferredSize(new
-		 * java.awt.Dimension(300, 300)); cc.setMaximumSize(new
-		 * java.awt.Dimension(300, 300)); cc.setMinimumSize(new
-		 * java.awt.Dimension(300, 300)); mid.add(cc);
-		 */
+
 		frame.getContentPane().add(mid);
 
 		JPanel bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT));
